@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -175,9 +176,10 @@ namespace WeightedDirectedGraphs
                     while (current != null)
                     {
                         path.Add(current);
-                        if(GetEdge(previousVertex[current], current) != null)
+                        var edge = GetEdge(previousVertex[current], current);
+                        if (edge is not null)
                         {
-                            pathCost += GetEdge(previousVertex[current], current).Distance;
+                            pathCost += edge.Distance;
 
                         }
                         current = previousVertex[current];
@@ -220,9 +222,10 @@ namespace WeightedDirectedGraphs
                     while (current != null)
                     {
                         path.Add(current);
-                        if (GetEdge(previousVertex[current], current) != null)
+                        var edge = GetEdge(previousVertex[current], current);
+                        if (edge != null)
                         {
-                            pathCost += GetEdge(previousVertex[current], current).Distance;
+                            pathCost += edge.Distance;
 
                         }
                         current = previousVertex[current];
@@ -242,6 +245,40 @@ namespace WeightedDirectedGraphs
                 } 
             }
 
+            return null;
+        }
+
+        public List<Vertex<T>>? DijkstraAlgorithm(Vertex<T>? start, Vertex<T>? end)
+        {
+            if (start == null || end == null) return null;
+            float pathCost = 0f;
+
+            Dictionary<Vertex<T>, Vertex<T>?> previousVertex = new()
+            {
+                [start] = null
+            };
+            HashSet<Vertex<T>> visited = new HashSet<Vertex<T>>();
+
+            Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
+
+            PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();   
+
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                distance[vertices[i]] = float.PositiveInfinity;
+                previousVertex[vertices[i]] = null;
+            }
+            distance[start] = 0;
+            queue.Enqueue(start, distance[start]);
+
+            while(queue.Count > 0)
+            {
+                Vertex<T> current = queue.Dequeue();
+                for(int i = 0; i < current.NeighborCount; i++)
+                {
+                    distance[current.Neighbors[i].EndingPoint]  = distance[current] + current.Neighbors[i].Distance;
+                }
+            }
             return null;
         }
     }
