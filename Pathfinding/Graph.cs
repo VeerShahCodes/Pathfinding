@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -248,10 +249,9 @@ namespace WeightedDirectedGraphs
             return null;
         }
 
-        public List<Vertex<T>>? DijkstraAlgorithm(Vertex<T>? start, Vertex<T>? end)
+        public List<Vertex<T>>? DijkstraAlgorithm(Vertex<T> start, Vertex<T> end)
         {
             if (start == null || end == null) return null;
-            float pathCost = 0f;
 
             Dictionary<Vertex<T>, Vertex<T>?> previousVertex = new()
             {
@@ -276,10 +276,49 @@ namespace WeightedDirectedGraphs
                 Vertex<T> current = queue.Dequeue();
                 for(int i = 0; i < current.NeighborCount; i++)
                 {
-                    distance[current.Neighbors[i].EndingPoint]  = distance[current] + current.Neighbors[i].Distance;
+                    float tentativeDistance = distance[current] + current.Neighbors[i].Distance;
+                    if(tentativeDistance < distance[current.Neighbors[i].EndingPoint])
+                    {
+                        distance[current.Neighbors[i].EndingPoint] = tentativeDistance;
+                        previousVertex[current.Neighbors[i].EndingPoint] = current;
+                        visited.Remove(current.Neighbors[i].EndingPoint);
+                    } 
                 }
+
+                for(int i = 0; i < current.NeighborCount; i++)
+                {
+                    if (!visited.Contains(current.Neighbors[i].EndingPoint)
+                        && !queue.UnorderedItems.AsEnumerable().Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
+                                                                        new NodeComparer<T>()))
+                    {
+                        queue.Enqueue(current.Neighbors[i].EndingPoint, distance[current.Neighbors[i].EndingPoint]);
+                    }
+                }
+
+                visited.Add(current);
             }
-            return null;
+            float pathCost = 0f;
+            Vertex<T> theCurrentest = end;
+            List<Vertex<T>> path = new List<Vertex<T>>();
+            while (previousVertex[theCurrentest!] != null)
+            {
+                path.Add(theCurrentest!);
+                pathCost += GetEdge(previousVertex[theCurrentest], theCurrentest)!.Distance;
+                theCurrentest = previousVertex[theCurrentest]!;
+                
+               
+            }
+            path.Reverse();
+            Console.WriteLine("Djikstra Algorithm:" + pathCost);
+            return path;
+            
         }
+    }
+
+    public class NodeComparer<T> : IEqualityComparer<(Vertex<T> Element, float Priority)>
+    {
+        public bool Equals((Vertex<T> Element, float Priority) x, (Vertex<T> Element, float Priority) y) => x.Element.Equals(y.Element);
+
+        public int GetHashCode([DisallowNull] (Vertex<T> Element, float Priority) obj) => obj.Element.GetHashCode();
     }
 }
