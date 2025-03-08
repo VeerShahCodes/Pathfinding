@@ -1,9 +1,29 @@
-﻿namespace WeightedDirectedGraphs
+﻿using System.Text.Json;
+
+namespace WeightedDirectedGraphs
 {
     internal class Program
     {
+        public struct jsonEdge
+        { 
+            public string Start { get; set; }
+            public string End { get; set; }
+            public int Distance { get; set; }
+        }
         static void Main(string[] args)
         {
+            string[] verticies = JsonSerializer.Deserialize<string[]>(File.ReadAllText(@"../../../../AirportProblemVerticies.json"));
+
+            jsonEdge[] edges = JsonSerializer.Deserialize<jsonEdge[]>(File.ReadAllText(@"../../../../AirportProblemEdges.json"));
+            ;
+
+
+
+
+
+
+
+
             Graph<int> graph = new Graph<int>();
 
             graph.AddVertex(1);
