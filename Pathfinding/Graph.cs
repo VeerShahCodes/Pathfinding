@@ -333,7 +333,15 @@ namespace WeightedDirectedGraphs
             return path;
             
         }
+
+        public void SelfDestruct()
+        {
+            Console.Write("BOOM ");
+            SelfDestruct();
+        }
     }
+
+
 
     public class NodeComparer<T> : IEqualityComparer<(Vertex<T> Element, float Priority)>
     {

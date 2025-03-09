@@ -52,6 +52,9 @@ namespace WeightedDirectedGraphs
                         }
                         Console.WriteLine();
                         Console.WriteLine($"Distance: {graph.GetDistance(path)}");
+                        Console.WriteLine();
+                        Console.WriteLine("--------------------------------------------------");
+                        Console.WriteLine();
                     }
                     else
                     {
@@ -60,7 +63,7 @@ namespace WeightedDirectedGraphs
 
                 }
             }
-            ;
+            //graph.SelfDestruct();
 
 
 
