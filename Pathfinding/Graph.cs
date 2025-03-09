@@ -155,6 +155,27 @@ namespace WeightedDirectedGraphs
 
             return Edges[index];
         }
+        public float GetDistance(List<Vertex<string>> path)
+        {
+            if (path == null || path.Count < 2)
+            {
+                return 0;
+            }
+
+            float totalDistance = 0;
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                for(int j = 0; j < path[i].NeighborCount; j++)
+                {
+                    if (path[i].Neighbors[j].EndingPoint == path[i + 1])
+                    {
+                        totalDistance += path[i].Neighbors[j].Distance;
+                    }
+                }
+
+            }
+            return totalDistance;
+        }
 
         public List<Vertex<T>>? PathFindBreadthFirst(Vertex<T>? start, Vertex<T>? end)
         {
@@ -297,19 +318,18 @@ namespace WeightedDirectedGraphs
 
                 visited.Add(current);
             }
-            float pathCost = 0f;
             Vertex<T> theCurrentest = end;
             List<Vertex<T>> path = new List<Vertex<T>>();
             while (previousVertex[theCurrentest!] != null)
             {
                 path.Add(theCurrentest!);
-                pathCost += GetEdge(previousVertex[theCurrentest], theCurrentest)!.Distance;
                 theCurrentest = previousVertex[theCurrentest]!;
                 
                
             }
+            path.Add(theCurrentest!);
+
             path.Reverse();
-            Console.WriteLine("Djikstra Algorithm:" + pathCost);
             return path;
             
         }
