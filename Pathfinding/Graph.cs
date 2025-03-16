@@ -6,6 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Xml.Linq;
+using System.Drawing;
 
 namespace WeightedDirectedGraphs
 {
@@ -89,7 +92,13 @@ namespace WeightedDirectedGraphs
             AddEdge(Search(val1), Search(val2), distance);
         }
 
-        
+        public void AddUndirectedEdge(T val1, T val2, float distance)
+        {
+            AddEdge(Search(val1), Search(val2), distance);
+            AddEdge(Search(val2), Search(val1), distance);
+        }
+
+
 
         private bool RemoveEdge(Vertex<T>? a, Vertex<T>? b)
         {
@@ -332,6 +341,88 @@ namespace WeightedDirectedGraphs
             path.Reverse();
             return path;
             
+        }
+
+        public List<Vertex<T>>? AStarAlgorithm(Vertex<T> start, Vertex<T> end, Func<Vertex<T>, Vertex<T>, double> heuristic)
+        {
+            if (start == null || end == null) return null;
+            Dictionary<Vertex<T>, Vertex<T>?> previousVertex = new()
+            {
+                [start] = null
+            };
+            HashSet<Vertex<T>> visited = new HashSet<Vertex<T>>();
+
+            Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
+            Dictionary<Vertex<T>, float> finalDistance = new Dictionary<Vertex<T>, float>();
+            PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                distance[vertices[i]] = float.PositiveInfinity;
+                previousVertex[vertices[i]] = null;
+                finalDistance[vertices[i]] = float.PositiveInfinity;
+            }
+            distance[start] = 0;
+            finalDistance[start] = (float)(heuristic(start, end));
+            queue.Enqueue(start, finalDistance[start]);
+
+            while(queue.Count > 0)
+            {
+                Vertex<T> current = queue.Dequeue();
+                for (int i = 0; i < current.NeighborCount; i++)
+                {
+                    float tentativeDistance = distance[current] + current.Neighbors[i].Distance;
+                    if (tentativeDistance < distance[current.Neighbors[i].EndingPoint])
+                    {
+                        distance[current.Neighbors[i].EndingPoint] = tentativeDistance;
+                        previousVertex[current.Neighbors[i].EndingPoint] = current;
+                        finalDistance[current] = distance[current] + (float)(heuristic(current, current.Neighbors[i].EndingPoint));
+                        visited.Remove(current.Neighbors[i].EndingPoint);
+                    }
+                }
+                for (int i = 0; i < current.NeighborCount; i++)
+                {
+                    if (!visited.Contains(current.Neighbors[i].EndingPoint)
+                        && !queue.UnorderedItems.AsEnumerable().Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
+                                                                        new NodeComparer<T>()))
+                    {
+                        queue.Enqueue(current.Neighbors[i].EndingPoint, finalDistance[current.Neighbors[i].EndingPoint]);
+                    }
+                }
+            }
+            Vertex<T> theCurrentest = end;
+            List<Vertex<T>> path = new List<Vertex<T>>();
+            while (previousVertex[theCurrentest!] != null)
+            {
+                path.Add(theCurrentest!);
+                theCurrentest = previousVertex[theCurrentest]!;
+
+
+            }
+            path.Add(theCurrentest!);
+
+            path.Reverse();
+            return path;
+        }
+
+        public double Manhattan(Vertex<Point> node, Vertex<Point> goal)
+        {
+            int dx = Math.Abs(node.Value.X - goal.Value.X);
+            int dy = Math.Abs(node.Value.Y - goal.Value.Y);
+            return 1 * (dx + dy);
+        }
+
+        public double Diagonal(Vertex<Point> node, Vertex<Point> goal) 
+        {
+            int dx = Math.Abs(node.Value.X - goal.Value.X);
+            int dy = Math.Abs(node.Value.Y - goal.Value.Y);
+            return 1* (dx + dy) + (Math.Sqrt(2) - 2 * 1) * Math.Min(dx, dy);
+        }
+
+        public double Euclidean(Vertex<Point> node, Vertex<Point> goal)
+        {
+            int dx = Math.Abs(node.Value.X - goal.Value.X);
+            int dy = Math.Abs(node.Value.Y - goal.Value.Y);
+            return 1 * Math.Sqrt(dx * dx + dy * dy);
         }
 
         public void SelfDestruct()

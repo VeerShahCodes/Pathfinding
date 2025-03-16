@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Text.Json;
 
 namespace WeightedDirectedGraphs
@@ -13,56 +14,56 @@ namespace WeightedDirectedGraphs
         }
         static void Main(string[] args)
         {
-            string[] verticies = JsonSerializer.Deserialize<string[]>(File.ReadAllText(@"../../../../AirportProblemVerticies.json"))!;
+            //string[] verticies = JsonSerializer.Deserialize<string[]>(File.ReadAllText(@"../../../../AirportProblemVerticies.json"))!;
 
-            jsonEdge[] edges = JsonSerializer.Deserialize<jsonEdge[]>(File.ReadAllText(@"../../../../AirportProblemEdges.json"))!;
-            
-            Graph<string> graph = new Graph<string>();
+            //jsonEdge[] edges = JsonSerializer.Deserialize<jsonEdge[]>(File.ReadAllText(@"../../../../AirportProblemEdges.json"))!;
 
-            for(int i = 0; i < verticies.Length; i++)
-            {
-                graph.AddVertex(verticies[i]);
-            }
+            //Graph<string> graph = new Graph<string>();
 
-            for (int i = 0; i < edges.Length; i++)
-            {
-                graph.AddEdge(edges[i].Start, edges[i].End, edges[i].Distance);
-            }
+            //for(int i = 0; i < verticies.Length; i++)
+            //{
+            //    graph.AddVertex(verticies[i]);
+            //}
 
-            for(int startIndex = 0; startIndex < verticies.Length; startIndex++)
-            {
-                for(int endIndex = 0; endIndex < verticies.Length; endIndex++)
-                {
-                    var path = new List<Vertex<string>>();
-                    path = graph.DijkstraAlgorithm(graph.Search(verticies[startIndex]), graph.Search(verticies[endIndex]));
-                    Console.Write($"Path from {verticies[startIndex]} to {verticies[endIndex]}: ");
-                    if (path != null)
-                    {
-                        for (int i = 0; i < path.Count; i++)
-                        {
-                            if (i + 1 < path.Count)
-                            {
-                                Console.Write($"{path[i].Value} -> ");
-                            }
-                            else
-                            {
-                                Console.Write($"{path[i].Value} ");
-                            }
-                                
-                        }
-                        Console.WriteLine();
-                        Console.WriteLine($"Distance: {graph.GetDistance(path)}");
-                        Console.WriteLine();
-                        Console.WriteLine("--------------------------------------------------");
-                        Console.WriteLine();
-                    }
-                    else
-                    {
-                        Console.WriteLine("No path found.");
-                    }
+            //for (int i = 0; i < edges.Length; i++)
+            //{
+            //    graph.AddEdge(edges[i].Start, edges[i].End, edges[i].Distance);
+            //}
 
-                }
-            }
+            //for(int startIndex = 0; startIndex < verticies.Length; startIndex++)
+            //{
+            //    for(int endIndex = 0; endIndex < verticies.Length; endIndex++)
+            //    {
+            //        var path = new List<Vertex<string>>();
+            //        path = graph.DijkstraAlgorithm(graph.Search(verticies[startIndex]), graph.Search(verticies[endIndex]));
+            //        Console.Write($"Path from {verticies[startIndex]} to {verticies[endIndex]}: ");
+            //        if (path != null)
+            //        {
+            //            for (int i = 0; i < path.Count; i++)
+            //            {
+            //                if (i + 1 < path.Count)
+            //                {
+            //                    Console.Write($"{path[i].Value} -> ");
+            //                }
+            //                else
+            //                {
+            //                    Console.Write($"{path[i].Value} ");
+            //                }
+
+            //            }
+            //            Console.WriteLine();
+            //            Console.WriteLine($"Distance: {graph.GetDistance(path)}");
+            //            Console.WriteLine();
+            //            Console.WriteLine("--------------------------------------------------");
+            //            Console.WriteLine();
+            //        }
+            //        else
+            //        {
+            //            Console.WriteLine("No path found.");
+            //        }
+
+            //    }
+            //}
             //graph.SelfDestruct();
 
 
@@ -96,6 +97,33 @@ namespace WeightedDirectedGraphs
             //List<Vertex<int>>? list = graph.PathFindBreadthFirst(graph.Search(1), graph.Search(5));
             //List<Vertex<int>>? list2 = graph.PathFindDepthFirst(graph.Search(1), graph.Search(5));
             //List<Vertex<int>>? list3 = graph.DijkstraAlgorithm(graph.Search(1), graph.Search(5));
+
+            Graph<Point> graph = new Graph<Point>();
+            for(int i = 0; i < 10; i++)
+            {
+                for(int j = 0; j < 10; j++)
+                {
+                    graph.AddVertex(new Point(i, j));
+
+                }
+            }
+            Random random = new Random();
+            
+            for(int i = 0; i < 10; i++)
+            {
+                for(int j = 0; j < 10; j++)
+                {
+                    graph.AddUndirectedEdge(new Point(i, j), new Point(i + 1, j), 1);
+                    graph.AddUndirectedEdge(new Point(i, j), new Point(i, j + 1), 1);
+                    graph.AddUndirectedEdge(new Point(i, j), new Point(i + 1, j + 1), (float)Math.Sqrt(2));
+                    graph.AddUndirectedEdge(new Point(i, j), new Point(i + 1, j - 1), (float)Math.Sqrt(2));
+                }
+            }
+            
+            //fix undirected visited thingguy
+            var list4 = graph.AStarAlgorithm(graph.Search(new Point(0, 0))!, graph.Search(new Point(8, 7))!, graph.Diagonal);
+            Console.WriteLine("Path Cost: " + graph.GetDistance(list4));
+            ;
 
             //;
 
