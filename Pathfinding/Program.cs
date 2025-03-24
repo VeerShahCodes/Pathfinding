@@ -64,7 +64,6 @@ namespace WeightedDirectedGraphs
 
             //    }
             //}
-            //graph.SelfDestruct();
 
 
 
@@ -121,8 +120,8 @@ namespace WeightedDirectedGraphs
             }
             
             //fix undirected visited thingguy
-            var list4 = graph.AStarAlgorithm(graph.Search(new Point(0, 0))!, graph.Search(new Point(8, 7))!, graph.Diagonal);
-            Console.WriteLine("Path Cost: " + graph.GetDistance(list4));
+            var list4 = graph.AStarAlgorithm(graph.Search(new Point(0, 0))!, graph.Search(new Point(2, 7))!, graph.Euclidean);
+            Console.WriteLine("Path Cost: " + graph.GetDistance(list4!));
             ;
 
             //;

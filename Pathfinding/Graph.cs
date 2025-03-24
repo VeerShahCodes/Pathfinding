@@ -164,7 +164,7 @@ namespace WeightedDirectedGraphs
 
             return Edges[index];
         }
-        public float GetDistance(List<Vertex<string>> path)
+        public float GetDistance(List<Vertex<T>> path)
         {
             if (path == null || path.Count < 2)
             {
@@ -341,20 +341,31 @@ namespace WeightedDirectedGraphs
             path.Reverse();
             return path;
             
-        }
+        }       
 
+        private class CombinedDictionary<T>
+        {
+            //make this combined with previous vertex, visited, distance, and final distance
+            Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
+            Dictionary<Vertex<T>, float> finalDistance = new Dictionary<Vertex<T>, float>();
+        } 
         public List<Vertex<T>>? AStarAlgorithm(Vertex<T> start, Vertex<T> end, Func<Vertex<T>, Vertex<T>, double> heuristic)
         {
             if (start == null || end == null) return null;
+
             Dictionary<Vertex<T>, Vertex<T>?> previousVertex = new()
             {
                 [start] = null
             };
-            HashSet<Vertex<T>> visited = new HashSet<Vertex<T>>();
+
+            //COMBINE
+            HashSet<Vertex<T>> visited = [];
 
             Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
             Dictionary<Vertex<T>, float> finalDistance = new Dictionary<Vertex<T>, float>();
+
             PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();
+         
             for (int i = 0; i < vertices.Count; i++)
             {
                 distance[vertices[i]] = float.PositiveInfinity;
@@ -363,11 +374,14 @@ namespace WeightedDirectedGraphs
             }
             distance[start] = 0;
             finalDistance[start] = (float)(heuristic(start, end));
+            
             queue.Enqueue(start, finalDistance[start]);
 
             while(queue.Count > 0)
             {
                 Vertex<T> current = queue.Dequeue();
+                visited.Add(current);
+
                 for (int i = 0; i < current.NeighborCount; i++)
                 {
                     float tentativeDistance = distance[current] + current.Neighbors[i].Distance;
@@ -379,12 +393,14 @@ namespace WeightedDirectedGraphs
                         visited.Remove(current.Neighbors[i].EndingPoint);
                     }
                 }
+                // DELETE ME
                 for (int i = 0; i < current.NeighborCount; i++)
                 {
                     if (!visited.Contains(current.Neighbors[i].EndingPoint)
-                        && !queue.UnorderedItems.AsEnumerable().Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
+                        && !queue.UnorderedItems.Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
                                                                         new NodeComparer<T>()))
                     {
+                        visited.Add(current.Neighbors[i].EndingPoint);
                         queue.Enqueue(current.Neighbors[i].EndingPoint, finalDistance[current.Neighbors[i].EndingPoint]);
                     }
                 }
