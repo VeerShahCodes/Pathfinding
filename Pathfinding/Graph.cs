@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -278,145 +279,152 @@ namespace WeightedDirectedGraphs
 
             return null;
         }
+        private class PathfindingInfo<T>
+        {
+            //make this combined with previous vertex, visited, distance, and final distance
+            public Dictionary<Vertex<T>, float> distance;
+            public Dictionary<Vertex<T>, float>? finalDistance;
+            public Dictionary<Vertex<T>, Vertex<T?>> previousVertex;
+            public HashSet<Vertex<T>> visited;
+            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, float> finalDistance, Dictionary<Vertex<T>, Vertex<T?>> previousVertex, HashSet<Vertex<T>> visited)
+            {
+                this.distance = distance;
+                this.finalDistance = finalDistance;
+                this.previousVertex = previousVertex;
+                this.visited = visited;
+            }
+            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, Vertex<T?>> previousVertex, HashSet<Vertex<T>> visited)
+            {
+                this.distance = distance;
+                this.previousVertex = previousVertex;
+                this.visited = visited;
+            }
+        }
 
         public List<Vertex<T>>? DijkstraAlgorithm(Vertex<T> start, Vertex<T> end)
         {
             if (start == null || end == null) return null;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            PathfindingInfo<T> pathInfo = new PathfindingInfo<T>(new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, new HashSet<Vertex<T>>());
 
-            Dictionary<Vertex<T>, Vertex<T>?> previousVertex = new()
-            {
-                [start] = null
-            };
-            HashSet<Vertex<T>> visited = new HashSet<Vertex<T>>();
-
-            Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
 
             PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();   
 
             for (int i = 0; i < vertices.Count; i++)
             {
-                distance[vertices[i]] = float.PositiveInfinity;
-                previousVertex[vertices[i]] = null;
+                pathInfo.distance[vertices[i]] = float.PositiveInfinity;
+                pathInfo.previousVertex[vertices[i]] = null!;
             }
-            distance[start] = 0;
-            queue.Enqueue(start, distance[start]);
+            pathInfo.distance[start] = 0;
+            queue.Enqueue(start, pathInfo.distance[start]);
 
             while(queue.Count > 0)
             {
                 Vertex<T> current = queue.Dequeue();
                 for(int i = 0; i < current.NeighborCount; i++)
                 {
-                    float tentativeDistance = distance[current] + current.Neighbors[i].Distance;
-                    if(tentativeDistance < distance[current.Neighbors[i].EndingPoint])
+                    float tentativeDistance = pathInfo.distance[current] + current.Neighbors[i].Distance;
+                    if(tentativeDistance < pathInfo.distance[current.Neighbors[i].EndingPoint])
                     {
-                        distance[current.Neighbors[i].EndingPoint] = tentativeDistance;
-                        previousVertex[current.Neighbors[i].EndingPoint] = current;
-                        visited.Remove(current.Neighbors[i].EndingPoint);
+                        pathInfo.distance[current.Neighbors[i].EndingPoint] = tentativeDistance;
+                        pathInfo.previousVertex[current.Neighbors[i].EndingPoint] = current!;
+                        pathInfo.visited.Remove(current.Neighbors[i].EndingPoint);
                     } 
                 }
 
                 for(int i = 0; i < current.NeighborCount; i++)
                 {
-                    if (!visited.Contains(current.Neighbors[i].EndingPoint)
+                    if (!pathInfo.visited.Contains(current.Neighbors[i].EndingPoint)
                         && !queue.UnorderedItems.AsEnumerable().Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
                                                                         new NodeComparer<T>()))
                     {
-                        queue.Enqueue(current.Neighbors[i].EndingPoint, distance[current.Neighbors[i].EndingPoint]);
+                        queue.Enqueue(current.Neighbors[i].EndingPoint, pathInfo.distance[current.Neighbors[i].EndingPoint]);
                     }
                 }
 
-                visited.Add(current);
+                pathInfo.visited.Add(current);
             }
             Vertex<T> theCurrentest = end;
             List<Vertex<T>> path = new List<Vertex<T>>();
-            while (previousVertex[theCurrentest!] != null)
+            while (pathInfo.previousVertex[theCurrentest!] != null)
             {
                 path.Add(theCurrentest!);
-                theCurrentest = previousVertex[theCurrentest]!;
+                theCurrentest = pathInfo.previousVertex[theCurrentest]!;
                 
                
             }
             path.Add(theCurrentest!);
 
             path.Reverse();
+            stopwatch.Stop();
+            Console.WriteLine($"Dijkstra's Algorithm took {stopwatch.ElapsedMilliseconds} ms to complete.");
             return path;
             
         }       
 
-        private class CombinedDictionary<T>
-        {
-            //make this combined with previous vertex, visited, distance, and final distance
-            Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
-            Dictionary<Vertex<T>, float> finalDistance = new Dictionary<Vertex<T>, float>();
-        } 
+
         public List<Vertex<T>>? AStarAlgorithm(Vertex<T> start, Vertex<T> end, Func<Vertex<T>, Vertex<T>, double> heuristic)
         {
             if (start == null || end == null) return null;
 
-            Dictionary<Vertex<T>, Vertex<T>?> previousVertex = new()
-            {
-                [start] = null
-            };
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-            //COMBINE
-            HashSet<Vertex<T>> visited = [];
+            PathfindingInfo<T> pathInfo = new PathfindingInfo<T>(new Dictionary<Vertex<T>, float>(), new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, []) ;
 
-            Dictionary<Vertex<T>, float> distance = new Dictionary<Vertex<T>, float>();
-            Dictionary<Vertex<T>, float> finalDistance = new Dictionary<Vertex<T>, float>();
 
             PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();
          
             for (int i = 0; i < vertices.Count; i++)
             {
-                distance[vertices[i]] = float.PositiveInfinity;
-                previousVertex[vertices[i]] = null;
-                finalDistance[vertices[i]] = float.PositiveInfinity;
+                pathInfo.distance[vertices[i]] = float.PositiveInfinity;
+                pathInfo.previousVertex[vertices[i]] = null;
+                pathInfo.finalDistance[vertices[i]] = float.PositiveInfinity;
             }
-            distance[start] = 0;
-            finalDistance[start] = (float)(heuristic(start, end));
+            pathInfo.distance[start] = 0;
+            pathInfo.finalDistance[start] = (float)(heuristic(start, end));
             
-            queue.Enqueue(start, finalDistance[start]);
+            queue.Enqueue(start, pathInfo.finalDistance[start]);
 
             while(queue.Count > 0)
             {
                 Vertex<T> current = queue.Dequeue();
-                visited.Add(current);
+                pathInfo.visited.Add(current);
 
                 for (int i = 0; i < current.NeighborCount; i++)
                 {
-                    float tentativeDistance = distance[current] + current.Neighbors[i].Distance;
-                    if (tentativeDistance < distance[current.Neighbors[i].EndingPoint])
+                    float tentativeDistance = pathInfo.distance[current] + current.Neighbors[i].Distance;
+                    if (tentativeDistance < pathInfo.distance[current.Neighbors[i].EndingPoint])
                     {
-                        distance[current.Neighbors[i].EndingPoint] = tentativeDistance;
-                        previousVertex[current.Neighbors[i].EndingPoint] = current;
-                        finalDistance[current] = distance[current] + (float)(heuristic(current, current.Neighbors[i].EndingPoint));
-                        visited.Remove(current.Neighbors[i].EndingPoint);
+                        pathInfo.distance[current.Neighbors[i].EndingPoint] = tentativeDistance;
+                        pathInfo.previousVertex[current.Neighbors[i].EndingPoint] = current;
+                        pathInfo.finalDistance[current] = pathInfo.distance[current] + (float)(heuristic(current, current.Neighbors[i].EndingPoint));
+                        pathInfo.visited.Remove(current.Neighbors[i].EndingPoint);
                     }
-                }
-                // DELETE ME
-                for (int i = 0; i < current.NeighborCount; i++)
-                {
-                    if (!visited.Contains(current.Neighbors[i].EndingPoint)
-                        && !queue.UnorderedItems.Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
-                                                                        new NodeComparer<T>()))
+                    if (!pathInfo.visited.Contains(current.Neighbors[i].EndingPoint)
+                          && !queue.UnorderedItems.Contains((current.Neighbors[i].EndingPoint, 2/*gets thrown away by the comparer, soi we don't care what it is*/),
+                                                    new NodeComparer<T>()))
                     {
-                        visited.Add(current.Neighbors[i].EndingPoint);
-                        queue.Enqueue(current.Neighbors[i].EndingPoint, finalDistance[current.Neighbors[i].EndingPoint]);
+                        pathInfo.visited.Add(current.Neighbors[i].EndingPoint);
+                        queue.Enqueue(current.Neighbors[i].EndingPoint, pathInfo.finalDistance[current.Neighbors[i].EndingPoint]);
                     }
                 }
             }
             Vertex<T> theCurrentest = end;
             List<Vertex<T>> path = new List<Vertex<T>>();
-            while (previousVertex[theCurrentest!] != null)
+            while (pathInfo.previousVertex[theCurrentest!] != null)
             {
                 path.Add(theCurrentest!);
-                theCurrentest = previousVertex[theCurrentest]!;
+                theCurrentest = pathInfo.previousVertex[theCurrentest]!;
 
 
             }
             path.Add(theCurrentest!);
 
             path.Reverse();
+            stopwatch.Stop();
+            Console.WriteLine($"A* Algorithm took {stopwatch.ElapsedMilliseconds} ms to complete.");
             return path;
         }
 
@@ -439,12 +447,6 @@ namespace WeightedDirectedGraphs
             int dx = Math.Abs(node.Value.X - goal.Value.X);
             int dy = Math.Abs(node.Value.Y - goal.Value.Y);
             return 1 * Math.Sqrt(dx * dx + dy * dy);
-        }
-
-        public void SelfDestruct()
-        {
-            Console.Write("BOOM ");
-            SelfDestruct();
         }
     }
 
