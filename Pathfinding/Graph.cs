@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Xml.Linq;
 using System.Drawing;
 
 namespace WeightedDirectedGraphs
@@ -279,25 +277,32 @@ namespace WeightedDirectedGraphs
 
             return null;
         }
-        private class PathfindingInfo<T>
+        private class PathfindingInfo
         {
             //make this combined with previous vertex, visited, distance, and final distance
             public Dictionary<Vertex<T>, float> distance;
             public Dictionary<Vertex<T>, float>? finalDistance;
-            public Dictionary<Vertex<T>, Vertex<T?>> previousVertex;
+            public Dictionary<Vertex<T>, Vertex<T>?> previousVertex;
             public HashSet<Vertex<T>> visited;
-            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, float> finalDistance, Dictionary<Vertex<T>, Vertex<T?>> previousVertex, HashSet<Vertex<T>> visited)
+            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, float> finalDistance, Dictionary<Vertex<T>, Vertex<T>?> previousVertex, HashSet<Vertex<T>> visited)
             {
                 this.distance = distance;
                 this.finalDistance = finalDistance;
                 this.previousVertex = previousVertex;
                 this.visited = visited;
             }
-            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, Vertex<T?>> previousVertex, HashSet<Vertex<T>> visited)
+            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, Vertex<T>?> previousVertex, HashSet<Vertex<T>> visited)
             {
                 this.distance = distance;
                 this.previousVertex = previousVertex;
                 this.visited = visited;
+            }
+
+            public PathfindingInfo(Dictionary<Vertex<T>, float> distance, Dictionary<Vertex<T>, Vertex<T>?> previousVertex)
+            {
+                this.distance = distance;
+                this.previousVertex = previousVertex;
+                visited = [];
             }
         }
 
@@ -305,7 +310,7 @@ namespace WeightedDirectedGraphs
         {
             if (start == null || end == null) return null;
 
-            PathfindingInfo<T> pathInfo = new PathfindingInfo<T>(new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, new HashSet<Vertex<T>>());
+            PathfindingInfo pathInfo = new PathfindingInfo(new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, new HashSet<Vertex<T>>());
 
 
             PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();   
@@ -368,7 +373,7 @@ namespace WeightedDirectedGraphs
 
 
 
-            PathfindingInfo<T> pathInfo = new PathfindingInfo<T>(new Dictionary<Vertex<T>, float>(), new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, []) ;
+            PathfindingInfo pathInfo = new PathfindingInfo(new Dictionary<Vertex<T>, float>(), new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, []) ;
 
 
             PriorityQueue<Vertex<T>, float> queue = new PriorityQueue<Vertex<T>, float>();
@@ -377,10 +382,10 @@ namespace WeightedDirectedGraphs
             {
                 pathInfo.distance[vertices[i]] = float.PositiveInfinity;
                 pathInfo.previousVertex[vertices[i]] = null;
-                pathInfo.finalDistance[vertices[i]] = float.PositiveInfinity;
+                pathInfo.finalDistance![vertices[i]] = float.PositiveInfinity;
             }
             pathInfo.distance[start] = 0;
-            pathInfo.finalDistance[start] = (float)(heuristic(start, end));
+            pathInfo.finalDistance![start] = (float)(heuristic(start, end));
             
             queue.Enqueue(start, pathInfo.finalDistance[start]);
 
@@ -423,6 +428,37 @@ namespace WeightedDirectedGraphs
 
             return path;
         }
+
+        public bool BellmanFordAlgorithm()
+        {
+            Queue<Vertex<T>> vQueue = new Queue<Vertex<T>>();
+            for(int i = 0; i < vertices.Count; i++)
+            {
+                vQueue.Enqueue(vertices[i]);
+            }
+
+            while(vQueue.Count > 0)
+            {
+
+            }
+
+        }
+
+        private bool isNegativeCycle() //make
+        {
+            if(isNegativeCycle() == true)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            
+            return true;
+        }
+
+
 
         public double Manhattan(Vertex<Point> node, Vertex<Point> goal)
         {
