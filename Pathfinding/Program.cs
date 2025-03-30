@@ -124,7 +124,7 @@ namespace WeightedDirectedGraphs
             int x2 = random.Next(0, 20);
             int y2 = random.Next(0, 20);
             var list5 = graph.DijkstraAlgorithm(graph.Search(new Point(x1, y1))!, graph.Search(new Point(x2,y2))!);
-            var list4 = graph.AStarAlgorithm(graph.Search(new Point(x1, y1))!, graph.Search(new Point(x2, y2))!, graph.Diagonal);
+            var list4 = graph.AStarAlgorithm(graph.Search(new Point(x1, y1))!, graph.Search(new Point(x2, y2))!, graph.Euclidean);
 
             Console.WriteLine("Path Cost: " + graph.GetDistance(list4!));
             ;

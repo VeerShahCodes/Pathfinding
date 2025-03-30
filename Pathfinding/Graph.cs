@@ -304,8 +304,7 @@ namespace WeightedDirectedGraphs
         public List<Vertex<T>>? DijkstraAlgorithm(Vertex<T> start, Vertex<T> end)
         {
             if (start == null || end == null) return null;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+
             PathfindingInfo<T> pathInfo = new PathfindingInfo<T>(new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, new HashSet<Vertex<T>>());
 
 
@@ -357,8 +356,7 @@ namespace WeightedDirectedGraphs
             path.Add(theCurrentest!);
 
             path.Reverse();
-            stopwatch.Stop();
-            Console.WriteLine($"Dijkstra's Algorithm took {stopwatch.ElapsedMilliseconds} ms to complete.");
+
             return path;
             
         }       
@@ -368,8 +366,7 @@ namespace WeightedDirectedGraphs
         {
             if (start == null || end == null) return null;
 
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+
 
             PathfindingInfo<T> pathInfo = new PathfindingInfo<T>(new Dictionary<Vertex<T>, float>(), new Dictionary<Vertex<T>, float>(), new() { [start] = null! }, []) ;
 
@@ -423,8 +420,7 @@ namespace WeightedDirectedGraphs
             path.Add(theCurrentest!);
 
             path.Reverse();
-            stopwatch.Stop();
-            Console.WriteLine($"A* Algorithm took {stopwatch.ElapsedMilliseconds} ms to complete.");
+
             return path;
         }
 
