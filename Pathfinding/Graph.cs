@@ -16,7 +16,7 @@ namespace WeightedDirectedGraphs
         private List<Vertex<T>> vertices;
         public IReadOnlyList<Vertex<T>> Vertices => vertices;
         public IReadOnlyList<Edge<T>> Edges
-        {//test
+        {
             get
             {
                 List<Edge<T>> edges = new List<Edge<T>>();
